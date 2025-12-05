@@ -58,14 +58,14 @@ func MKDISK(params map[string]string) (string, error) {
 	// Validar parámetros obligatorios
 	sizeStr, ok := params["size"]
 	if !ok {
-		return "", fmt.Errorf("❌ Error: El parámetro -size es obligatorio")
+		return "", fmt.Errorf("Error: El parámetro -size es obligatorio")
 	}
 
 	// Convertir size a int64
 	var size int64
 	_, err := fmt.Sscanf(sizeStr, "%d", &size)
 	if err != nil || size <= 0 {
-		return "", fmt.Errorf("❌ Error: El tamaño debe ser un número positivo mayor que 0")
+		return "", fmt.Errorf("Error: El tamaño debe ser un número positivo mayor que 0")
 	}
 
 	// Obtener unit (opcional, default M)
@@ -73,7 +73,7 @@ func MKDISK(params map[string]string) (string, error) {
 	if u, ok := params["unit"]; ok {
 		unit = strings.ToUpper(u)
 		if unit != "K" && unit != "M" {
-			return "", fmt.Errorf("❌ Error: La unidad debe ser K o M")
+			return "", fmt.Errorf("Error: La unidad debe ser K o M")
 		}
 	}
 
@@ -82,7 +82,7 @@ func MKDISK(params map[string]string) (string, error) {
 	if f, ok := params["fit"]; ok {
 		fit = strings.ToUpper(f)
 		if fit != "BF" && fit != "FF" && fit != "WF" {
-			return "", fmt.Errorf("❌ Error: El ajuste debe ser BF, FF o WF")
+			return "", fmt.Errorf("Error: El ajuste debe ser BF, FF o WF")
 		}
 	}
 
@@ -96,13 +96,13 @@ func MKDISK(params map[string]string) (string, error) {
 
 	// Verificar si el disco ya existe
 	if utils.FileExists(diskPath) {
-		return "", fmt.Errorf("❌ Error: El disco %s ya existe", diskName)
+		return "", fmt.Errorf("Error: El disco %s ya existe", diskName)
 	}
 
 	// Crear el archivo del disco
 	file, err := os.Create(diskPath)
 	if err != nil {
-		return "", fmt.Errorf("❌ Error al crear el archivo del disco: %v", err)
+		return "", fmt.Errorf("Error al crear el archivo del disco: %v", err)
 	}
 	defer file.Close()
 
@@ -118,7 +118,7 @@ func MKDISK(params map[string]string) (string, error) {
 
 		n, err := file.Write(buffer[:writeSize])
 		if err != nil {
-			return "", fmt.Errorf("❌ Error al escribir en el disco: %v", err)
+			return "", fmt.Errorf("Error al escribir en el disco: %v", err)
 		}
 		remaining -= int64(n)
 	}
@@ -163,16 +163,14 @@ func MKDISK(params map[string]string) (string, error) {
 	}
 
 	// Construir mensaje de éxito
-	output := fmt.Sprintf("\n╔════════════════════════════════════════════╗\n")
-	output += fmt.Sprintf("║         DISCO CREADO EXITOSAMENTE         ║\n")
-	output += fmt.Sprintf("╚════════════════════════════════════════════╝\n\n")
-	output += fmt.Sprintf("📀 Nombre:     %s\n", diskName)
-	output += fmt.Sprintf("📏 Tamaño:     %d %s (%d bytes)\n", size, unit, sizeBytes)
-	output += fmt.Sprintf("⚙️  Ajuste:     %s\n", fit)
-	output += fmt.Sprintf("🔑 Signature:  %d\n", mbr.MbrDskSignature)
-	output += fmt.Sprintf("📅 Creado:     %s\n", now.Format("2006-01-02 15:04:05"))
-	output += fmt.Sprintf("📂 Ubicación:  %s\n", diskPath)
-	output += fmt.Sprintf("\n✅ Disco creado y MBR inicializado correctamente\n")
+	output := fmt.Sprintf("         DISCO CREADO EXITOSAMENTE         \n")
+	output += fmt.Sprintf("Nombre:     %s\n", diskName)
+	output += fmt.Sprintf("Tamaño:     %d %s (%d bytes)\n", size, unit, sizeBytes)
+	output += fmt.Sprintf("Ajuste:     %s\n", fit)
+	output += fmt.Sprintf("Signature:  %d\n", mbr.MbrDskSignature)
+	output += fmt.Sprintf("Creado:     %s\n", now.Format("2006-01-02 15:04:05"))
+	output += fmt.Sprintf("Ubicación:  %s\n", diskPath)
+	output += fmt.Sprintf("\nDisco creado y MBR inicializado correctamente\n")
 
 	return output, nil
 }
@@ -182,7 +180,7 @@ func RMDISK(params map[string]string) (string, error) {
 	// Validar parámetro obligatorio
 	diskName, ok := params["diskname"]
 	if !ok {
-		return "", fmt.Errorf("❌ Error: El parámetro -diskName es obligatorio")
+		return "", fmt.Errorf("Error: El parámetro -diskName es obligatorio")
 	}
 
 	// Agregar extensión si no la tiene
@@ -194,13 +192,13 @@ func RMDISK(params map[string]string) (string, error) {
 
 	// Verificar si el disco existe
 	if !utils.FileExists(diskPath) {
-		return "", fmt.Errorf("❌ Error: El disco %s no existe", diskName)
+		return "", fmt.Errorf("	Error: El disco %s no existe", diskName)
 	}
 
 	// Eliminar el archivo
 	err := os.Remove(diskPath)
 	if err != nil {
-		return "", fmt.Errorf("❌ Error al eliminar el disco: %v", err)
+		return "", fmt.Errorf("Error al eliminar el disco: %v", err)
 	}
 
 	// Remover del mapa de discos creados
@@ -210,11 +208,10 @@ func RMDISK(params map[string]string) (string, error) {
 		delete(createdDisksMap, letter)
 	}
 
-	output := fmt.Sprintf("\n╔════════════════════════════════════════════╗\n")
-	output += fmt.Sprintf("║        DISCO ELIMINADO EXITOSAMENTE       ║\n")
-	output += fmt.Sprintf("╚════════════════════════════════════════════╝\n\n")
-	output += fmt.Sprintf("🗑️  Disco eliminado: %s\n", diskName)
-	output += fmt.Sprintf("✅ Operación completada correctamente\n")
+	output := fmt.Sprintf("        DISCO ELIMINADO EXITOSAMENTE       \n")
+
+	output += fmt.Sprintf("Disco eliminado: %s\n", diskName)
+	output += fmt.Sprintf("Operación completada correctamente\n")
 
 	return output, nil
 }

@@ -13,11 +13,11 @@ import (
 
 func main() {
 	// Cargar discos existentes al iniciar
-	log.Println("🔍 Cargando discos existentes...")
+	log.Println(" Cargando discos existentes...")
 	services.LoadExistingDisks()
 	diskCount := services.GetDiskCount()
 	if diskCount > 0 {
-		log.Printf("📀 Se encontraron %d disco(s) existente(s)\n", diskCount)
+		log.Printf("   Se encontraron %d disco(s) existente(s)\n", diskCount)
 	}
 
 	// Configurar Gin
@@ -52,11 +52,8 @@ func main() {
 	// Ruta para listar discos
 	router.GET("/api/disks", handleGetDisks)
 
-	log.Println("╔════════════════════════════════════════════╗")
-	log.Println("║   🚀 Servidor Backend Iniciado            ║")
-	log.Println("║   📡 http://localhost:8080                ║")
-	log.Println("║   📁 Sistema de Archivos EXT2             ║")
-	log.Println("╚════════════════════════════════════════════╝")
+	log.Println("   Servidor Backend Iniciado            ")
+	log.Println("   http://localhost:8080                ")
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal("Error al iniciar el servidor:", err)
