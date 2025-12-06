@@ -113,7 +113,7 @@ func ExecuteSingleCommand(cmdName string, params map[string]string) (string, err
 		return services.CAT(params)
 
 	case "rep":
-		return "Comando REP aún no implementado", nil
+		return services.REP(params)
 
 	default:
 		return "", fmt.Errorf("comando no reconocido: %s", cmdName)
