@@ -37,13 +37,13 @@ function App() {
       setOutputCommands(prev => 
         prev + `\n Archivo cargado: ${file.name}\n` +
         `Tamaño: ${(file.size / 1024).toFixed(2)} KB\n` +
-        `✅ Listo para ejecutar\n\n`
+        ` Listo para ejecutar\n\n`
       )
     }
     
     reader.onerror = () => {
       setOutputCommands(prev => 
-        prev + '\n❌ Error al leer el archivo\n'
+        prev + '\n Error al leer el archivo\n'
       )
     }
     
@@ -80,19 +80,19 @@ function App() {
         setOutputCommands(prev => prev + '\n' + response.data.output + '\n')
       } else {
         setOutputCommands(prev => 
-          prev + '\n❌ Error en la ejecución\n' +
+          prev + '\n Error en la ejecución\n' +
           (response.data.error || 'Error desconocido') + '\n'
         )
       }
     } catch (error) {
-      let errorMessage = '\n❌ Error de conexión:\n'
+      let errorMessage = '\n Error de conexión:\n'
       
       if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
         errorMessage += 'No se pudo conectar con el servidor backend\n'
         errorMessage += 'Asegúrate de que el servidor esté corriendo en http://localhost:8080\n'
         errorMessage += 'Ejecuta: cd backend && go run cmd/api/main.go\n'
       } else if (error.response) {
-        errorMessage += `📡 Status: ${error.response.status}\n`
+        errorMessage += ` Status: ${error.response.status}\n`
         errorMessage += ` ${error.response.data?.error || error.message}\n`
       } else {
         errorMessage += ` ${error.message}\n`
@@ -115,26 +115,22 @@ function App() {
   // Limpiar área de salida
   const handleClearOutput = () => {
     setOutputCommands(
-      '╔════════════════════════════════════════════╗\n' +
-      '║   MANEJO E IMPLEMENTACION DE ARCHIVOS      ║\n' +
-      '║   Universidad San Carlos de Guatemala      ║\n' +
-      '╚════════════════════════════════════════════╝\n\n' +
       ' Sistema listo para recibir comandos...\n\n'
     )
   }
 
   // Probar conexión con backend
   const testConnection = async () => {
-    setOutputCommands(prev => prev + '\n🔍 Probando conexión con el backend...\n')
+    setOutputCommands(prev => prev + '\n Probando conexión con el backend...\n')
     try {
       const response = await axios.get(`${API_URL}/ping`)
       setOutputCommands(prev => 
-        prev + '✅ ' + response.data.status + '\n' +
-        '⏰ ' + response.data.time + '\n\n'
+        prev + ' ' + response.data.status + '\n' +
+        ' ' + response.data.time + '\n\n'
       )
     } catch (error) {
       setOutputCommands(prev => 
-        prev + '❌ No se pudo conectar con el backend\n' +
+        prev + ' No se pudo conectar con el backend\n' +
         ' Verifica que el servidor esté corriendo\n\n'
       )
     }

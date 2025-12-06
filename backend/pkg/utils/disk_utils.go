@@ -156,11 +156,18 @@ func ParseCommand(command string) (string, map[string]string, error) {
 
 	for i := 1; i < len(parts); i++ {
 		param := parts[i]
-		if strings.Contains(param, "=") {
-			kv := strings.SplitN(param, "=", 2)
-			key := strings.ToLower(strings.TrimPrefix(kv[0], "-"))
-			value := strings.Trim(kv[1], "\"")
-			params[key] = value
+		if strings.HasPrefix(param, "-") {
+			if strings.Contains(param, "=") {
+				// Parámetro con valor: -key=value
+				kv := strings.SplitN(param, "=", 2)
+				key := strings.ToLower(strings.TrimPrefix(kv[0], "-"))
+				value := strings.Trim(kv[1], "\"")
+				params[key] = value
+			} else {
+				// Parámetro sin valor (flag): -r, -p
+				key := strings.ToLower(strings.TrimPrefix(param, "-"))
+				params[key] = "true" // Asignar "true" como valor
+			}
 		}
 	}
 

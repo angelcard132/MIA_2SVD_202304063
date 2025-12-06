@@ -37,7 +37,7 @@ func main() {
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
-			"status":  "Backend funcionando correctamente ✅",
+			"status":  "Backend funcionando correctamente ",
 			"time":    time.Now().Format("2006-01-02 15:04:05"),
 			"disks":   services.GetDiskCount(),
 		})

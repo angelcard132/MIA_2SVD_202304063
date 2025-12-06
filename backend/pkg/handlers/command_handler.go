@@ -89,28 +89,28 @@ func ExecuteSingleCommand(cmdName string, params map[string]string) (string, err
 		return services.MOUNTED(params)
 
 	case "mkfs":
-		return "Comando MKFS aún no implementado", nil
+		return services.MKFS(params)
 
 	case "login":
-		return "Comando LOGIN aún no implementado", nil
+		return services.LOGIN(params)
 
 	case "logout":
-		return "Comando LOGOUT aún no implementado", nil
+		return services.LOGOUT(params)
 
 	case "mkgrp":
-		return "Comando MKGRP aún no implementado", nil
+		return services.MKGRP(params)
 
 	case "mkusr":
-		return "Comando MKUSR aún no implementado", nil
+		return services.MKUSR(params)
 
 	case "mkfile":
-		return "Comando MKFILE aún no implementado", nil
+		return services.MKFILE(params)
 
 	case "mkdir":
-		return "Comando MKDIR aún no implementado", nil
+		return services.MKDIR(params)
 
 	case "cat":
-		return "Comando CAT aún no implementado", nil
+		return services.CAT(params)
 
 	case "rep":
 		return "Comando REP aún no implementado", nil

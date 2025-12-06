@@ -147,12 +147,12 @@ func MKDISK(params map[string]string) (string, error) {
 	// Escribir el MBR al inicio del disco
 	_, err = file.Seek(0, 0)
 	if err != nil {
-		return "", fmt.Errorf("❌ Error al posicionar el puntero del archivo: %v", err)
+		return "", fmt.Errorf(" Error al posicionar el puntero del archivo: %v", err)
 	}
 
 	err = binary.Write(file, binary.LittleEndian, &mbr)
 	if err != nil {
-		return "", fmt.Errorf("❌ Error al escribir el MBR: %v", err)
+		return "", fmt.Errorf(" Error al escribir el MBR: %v", err)
 	}
 
 	// Registrar el disco creado
