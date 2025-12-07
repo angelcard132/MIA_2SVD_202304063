@@ -149,16 +149,16 @@ func MKUSR(params map[string]string) (string, error) {
 		return "", fmt.Errorf(" Error: El parámetro -grp es obligatorio")
 	}
 
-	if len(user) > 10 {
-		return "", fmt.Errorf(" Error: El nombre de usuario no puede exceder 10 caracteres")
+	if len(user) > 60 {
+		return "", fmt.Errorf(" Error: El nombre de usuario no puede exceder 60 caracteres")
 	}
 
-	if len(pass) > 10 {
-		return "", fmt.Errorf(" Error: La contraseña no puede exceder 10 caracteres")
+	if len(pass) > 60 {
+		return "", fmt.Errorf(" Error: La contraseña no puede exceder 60 caracteres")
 	}
 
-	if len(grp) > 10 {
-		return "", fmt.Errorf(" Error: El nombre del grupo no puede exceder 10 caracteres")
+	if len(grp) > 60 {
+		return "", fmt.Errorf(" Error: El nombre del grupo no puede exceder 60 caracteres")
 	}
 
 	// Abrir el disco

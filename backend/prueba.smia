@@ -1,0 +1,305 @@
+
+# ============================================
+# FASE 1: ADMINISTRACIÓN DE DISCOS
+# ============================================
+
+# Crear discos de diferentes tamaños y configuraciones
+mkdisk -size=20 -unit=M
+mkdisk -size=15 -unit=M -fit=BF
+mkdisk -size=3000 -unit=K -fit=WF
+mkdisk -size=10 -unit=M
+
+# ============================================
+# FASE 2: GESTIÓN DE PARTICIONES
+# ============================================
+
+# Crear particiones primarias en Disco A
+fdisk -size=5 -unit=M -diskName=VDIC-A.mia -name=Particion1 -fit=FF
+fdisk -size=3000 -unit=K -diskName=VDIC-A.mia -name=Particion2 -fit=BF
+fdisk -size=2 -unit=M -diskName=VDIC-A.mia -name=Particion3 -fit=WF
+
+# Intentar crear 5ta partición (DEBE FALLAR)
+fdisk -size=1 -unit=M -diskName=VDIC-A.mia -name=NoDebeFuncionar
+
+# Crear partición extendida en Disco B
+fdisk -type=E -diskName=VDIC-B.mia -unit=M -name=Extendida1 -size=8
+
+# Crear particiones lógicas dentro de la extendida
+fdisk -type=L -diskName=VDIC-B.mia -name=Logica1 -size=2 -unit=M
+fdisk -type=L -diskName=VDIC-B.mia -name=Logica2 -size=1500 -unit=K
+fdisk -type=L -diskName=VDIC-B.mia -name=Logica3 -size=2048 -unit=K
+
+# Intentar crear segunda extendida (DEBE FALLAR)
+fdisk -type=E -diskName=VDIC-B.mia -name=NoDebeFuncionar2 -size=1 -unit=M
+
+# Crear particiones en Disco C
+fdisk -size=2 -unit=M -diskName=VDIC-C.mia -name=PartC1
+fdisk -size=500 -unit=K -diskName=VDIC-C.mia -name=PartC2
+
+# Crear partición en Disco D
+fdisk -size=5 -unit=M -diskName=VDIC-D.mia -name=PartD1
+
+# ============================================
+# FASE 3: MONTAJE DE PARTICIONES
+# ============================================
+
+# Montar particiones del Disco A
+mount -path=VDIC-A.mia -name=Particion1
+mount -path=VDIC-A.mia -name=Particion2
+mount -path=VDIC-A.mia -name=Particion3
+
+# Montar particiones del Disco B
+mount -path=VDIC-B.mia -name=Extendida1
+
+# Montar particiones del Disco C
+mount -path=VDIC-C.mia -name=PartC1
+mount -path=VDIC-C.mia -name=PartC2
+
+# Montar partición del Disco D
+mount -path=VDIC-D.mia -name=PartD1
+
+# Mostrar todas las particiones montadas
+mounted
+
+# Intentar montar partición ya montada (DEBE FALLAR)
+mount -path=VDIC-A.mia -name=Particion1
+
+# ============================================
+# FASE 4: FORMATEO DE PARTICIONES
+# ============================================
+
+# Formatear particiones con EXT2
+mkfs -id=221A -type=full
+mkfs -id=222A
+mkfs -id=223A
+mkfs -id=221C
+
+# ============================================
+# FASE 5: GESTIÓN DE USUARIOS Y GRUPOS
+# ============================================
+
+# Login como root en partición principal
+login -user=root -pass=123 -id=221A
+
+# Verificar archivo users.txt inicial
+cat -file1=/users.txt
+
+# Crear grupos
+mkgrp -name=usuarios
+mkgrp -name=administradores
+mkgrp -name=desarrolladores
+mkgrp -name=contabilidad
+mkgrp -name=ventas
+
+# Crear usuarios
+mkusr -user=juan -pass=juan123 -grp=usuarios
+mkusr -user=maria -pass=maria456 -grp=administradores
+mkusr -user=pedro -pass=pedro789 -grp=desarrolladores
+mkusr -user=ana -pass=ana111 -grp=contabilidad
+mkusr -user=carlos -pass=carlos222 -grp=ventas
+mkusr -user=lucia -pass=lucia333 -grp=usuarios
+mkusr -user=diego -pass=diego444 -grp=desarrolladores
+
+# Intentar crear grupo duplicado (DEBE FALLAR)
+mkgrp -name=usuarios
+
+# Intentar crear usuario duplicado (DEBE FALLAR)
+mkusr -user=juan -pass=otra -grp=usuarios
+
+# Intentar crear usuario con grupo inexistente (DEBE FALLAR)
+mkusr -user=test -pass=test -grp=noexiste
+
+# Verificar users.txt actualizado
+cat -file1=/users.txt
+
+# ============================================
+# FASE 6: CREACIÓN DE ESTRUCTURA DE CARPETAS
+# ============================================
+
+# Crear carpetas simples
+mkdir -path=/home
+mkdir -path=/var
+mkdir -path=/usr
+mkdir -path=/tmp
+
+# Crear subcarpetas
+mkdir -path=/home/juan
+mkdir -path=/home/maria
+mkdir -path=/home/pedro
+
+# Crear carpetas con -p (padres)
+mkdir -p -path=/home/juan/documentos/trabajo/proyectos
+mkdir -p -path=/home/juan/documentos/personal
+mkdir -p -path=/home/juan/descargas
+mkdir -p -path=/home/maria/archivos/importantes
+mkdir -p -path=/home/maria/fotos/vacaciones
+mkdir -p -path=/home/pedro/codigo/python
+mkdir -p -path=/home/pedro/codigo/java
+mkdir -p -path=/var/log/sistema
+mkdir -p -path=/var/log/aplicaciones
+mkdir -p -path=/usr/local/bin
+
+# Estructura compleja
+mkdir -p -path=/empresa/departamentos/ventas/reportes
+mkdir -p -path=/empresa/departamentos/contabilidad/facturas
+mkdir -p -path=/empresa/departamentos/recursos_humanos
+mkdir -p -path=/empresa/proyectos/proyecto_a
+mkdir -p -path=/empresa/proyectos/proyecto_b
+
+# ============================================
+# FASE 7: CREACIÓN DE ARCHIVOS
+# ============================================
+
+# Archivos pequeños
+mkfile -path=/home/juan/readme.txt -size=25
+mkfile -path=/home/juan/notas.txt -size=30
+mkfile -path=/home/maria/info.txt -size=35
+
+# Archivos medianos (1 bloque)
+mkfile -path=/home/juan/documento1.txt -size=64
+mkfile -path=/home/maria/reporte.txt -size=60
+
+# Archivos grandes (múltiples bloques)
+mkfile -path=/home/juan/archivo_grande.txt -size=150
+mkfile -path=/home/juan/datos.txt -size=250
+mkfile -path=/home/pedro/codigo.txt -size=300
+mkfile -path=/var/log/sistema/syslog.txt -size=400
+mkfile -path=/empresa/proyectos/proyecto_a/plan.txt -size=500
+
+# Archivos muy grandes
+mkfile -path=/home/juan/big_file.txt -size=768
+
+# Crear archivos con -r (creando carpetas padres)
+mkfile -r -path=/nueva/ruta/profunda/archivo1.txt -size=50
+mkfile -r -path=/test/path/deep/file.txt -size=75
+mkfile -r -path=/x/y/z/data.txt -size=100
+
+# Muchos archivos en un directorio (probar expansión)
+mkfile -path=/home/juan/file1.txt -size=20
+mkfile -path=/home/juan/file2.txt -size=21
+mkfile -path=/home/juan/file3.txt -size=22
+mkfile -path=/home/juan/file4.txt -size=23
+mkfile -path=/home/juan/file5.txt -size=24
+mkfile -path=/home/juan/file6.txt -size=25
+mkfile -path=/home/juan/file7.txt -size=26
+mkfile -path=/home/juan/file8.txt -size=27
+mkfile -path=/home/juan/file9.txt -size=28
+mkfile -path=/home/juan/file10.txt -size=29
+
+# Archivos en diferentes ubicaciones
+mkfile -path=/var/log/app.log -size=45
+mkfile -path=/tmp/temporal.txt -size=30
+mkfile -path=/usr/local/bin/script.txt -size=55
+
+# ============================================
+# FASE 8: LECTURA DE ARCHIVOS (CAT)
+# ============================================
+
+# Leer archivos individuales
+cat -file1=/home/juan/readme.txt
+cat -file1=/home/juan/documento1.txt
+cat -file1=/home/juan/archivo_grande.txt
+cat -file1=/home/juan/big_file.txt
+
+# Concatenar múltiples archivos
+cat -file1=/home/juan/file1.txt -file2=/home/juan/file2.txt
+cat -file1=/home/juan/file1.txt -file2=/home/juan/file2.txt -file3=/home/juan/file3.txt
+cat -file1=/home/juan/readme.txt -file2=/home/maria/info.txt -file3=/home/pedro/codigo.txt
+
+# Leer archivo users.txt
+cat -file1=/users.txt
+
+# Leer archivos en rutas profundas
+cat -file1=/nueva/ruta/profunda/archivo1.txt
+cat -file1=/empresa/proyectos/proyecto_a/plan.txt
+
+# ============================================
+# FASE 9: LOGOUT Y LOGIN CON OTROS USUARIOS
+# ============================================
+
+logout
+
+# Login como juan
+login -user=juan -pass=juan123 -id=221A
+
+# Intentar crear grupo sin ser root (DEBE FALLAR)
+mkgrp -name=testgrupo
+
+# Intentar crear usuario sin ser root (DEBE FALLAR)
+mkusr -user=testusr -pass=test -grp=usuarios
+
+# Leer archivos como juan
+cat -file1=/home/juan/readme.txt
+cat -file1=/home/juan/file1.txt
+
+logout
+
+# Login como maria
+login -user=maria -pass=maria456 -id=221A
+cat -file1=/home/maria/info.txt
+cat -file1=/home/maria/reporte.txt
+logout
+
+# Login como pedro
+login -user=pedro -pass=pedro789 -id=221A
+cat -file1=/home/pedro/codigo.txt
+logout
+
+# ============================================
+# FASE 10: SEGUNDA PARTICIÓN
+# ============================================
+
+# Login en segunda partición
+login -user=root -pass=123 -id=222A
+
+# Crear estructura en segunda partición
+mkgrp -name=grupo2
+mkusr -user=usuario2 -pass=pass2 -grp=grupo2
+mkdir -p -path=/particion2/datos
+mkfile -path=/particion2/test.txt -size=100
+cat -file1=/particion2/test.txt
+cat -file1=/users.txt
+
+logout
+
+# ============================================
+# FASE 11: TERCERA PARTICIÓN
+# ============================================
+
+login -user=root -pass=123 -id=223A
+mkgrp -name=grupo3
+mkusr -user=usuario3 -pass=pass3 -grp=grupo3
+mkdir -p -path=/part3/archivos
+mkfile -path=/part3/documento.txt -size=80
+cat -file1=/part3/documento.txt
+logout
+
+# ============================================
+# FASE 12: REPORTES COMPLETOS
+# ============================================
+
+# Volver a partición principal para reportes
+login -user=root -pass=123 -id=221A
+
+# Reportes del Disco A
+rep -id=221A -path=./reportes/disco_a_mbr.jpg -name=mbr
+rep -id=221A -path=./reportes/disco_a_disk.png -name=disk
+rep -id=221A -path=./reportes/disco_a_sb.jpg -name=sb
+rep -id=221A -path=./reportes/disco_a_inodes.jpg -name=inode
+rep -id=221A -path=./reportes/disco_a_blocks.jpg -name=block
+rep -id=221A -path=./reportes/disco_a_tree.jpg -name=tree
+rep -id=221A -path=./reportes/disco_a_bm_inode.txt -name=bm_inode
+rep -id=221A -path=./reportes/disco_a_bm_block.txt -name=bm_block
+
+logout
+
+# Reportes de otras particiones
+rep -id=222A -path=./reportes/part2_mbr.jpg -name=mbr
+rep -id=222A -path=./reportes/part2_sb.jpg -name=sb
+rep -id=222A -path=./reportes/part2_tree.jpg -name=tree
+
+rep -id=223A -path=./reportes/part3_mbr.jpg -name=mbr
+rep -id=223A -path=./reportes/part3_sb.jpg -name=sb
+
+rep -id=221C -path=./reportes/disco_c_disk.png -name=disk
+rep -id=221C -path=./reportes/disco_c_mbr.jpg -name=mbr
