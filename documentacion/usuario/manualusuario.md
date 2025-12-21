@@ -12,7 +12,7 @@
 
 #### CARNÉ: 202304063
 
-#### SECCIÓN: B
+#### SECCIÓN: A
 
 #### Guatemala, 21 de diciembre del 2025
 

@@ -15,7 +15,7 @@ var mountedPartitions = make(map[string]*models.MountedPartition)
 var diskPartitionCounters = make(map[byte]int)
 
 // Carnet del estudiante (últimos 2 dígitos en hex)
-const CARNET = "202401234" // Cambiar por tu carnet
+const CARNET = "202304063"
 
 // MOUNT - Monta una partición en el sistema
 func MOUNT(params map[string]string) (string, error) {
