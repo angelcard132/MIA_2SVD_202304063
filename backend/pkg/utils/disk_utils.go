@@ -100,20 +100,17 @@ func GetStructSize(data interface{}) int64 {
 }
 
 // GeneratePartitionID - Genera el ID de una partición montada
-// Formato: XX + N + L (XX = últimos 2 dígitos del carnet en hex, N = número partición, L = letra disco)
 func GeneratePartitionID(carnet string, partNum int, diskLetter byte) string {
-	// Extraer últimos 2 dígitos del carnet
+
 	if len(carnet) < 2 {
 		carnet = "00"
 	}
 	lastTwo := carnet[len(carnet)-2:]
 
-	// Convertir a hexadecimal
 	var num int
 	fmt.Sscanf(lastTwo, "%d", &num)
 	hexValue := fmt.Sprintf("%02X", num)
 
-	// Formato: HEX + PartNum + DiskLetter
 	return fmt.Sprintf("%s%d%c", hexValue, partNum, diskLetter)
 }
 
@@ -121,7 +118,6 @@ func GeneratePartitionID(carnet string, partNum int, diskLetter byte) string {
 func ParseCommand(command string) (string, map[string]string, error) {
 	command = strings.TrimSpace(command)
 
-	// Ignorar comentarios y líneas vacías
 	if strings.HasPrefix(command, "#") || command == "" {
 		return "", nil, nil
 	}
@@ -214,10 +210,6 @@ func CalculateEXT2Structures(partitionSize int64) (int32, int32) {
 		I_perm  [3]byte
 	}{}))
 	blockSize := int64(64) // Tamaño del bloque
-
-	// Fórmula: partitionSize = superblock + n + 3*n + n*inodeSize + 3*n*blockSize
-	// partitionSize = superblock + n(1 + 3 + inodeSize + 3*blockSize)
-	// n = (partitionSize - superblock) / (1 + 3 + inodeSize + 3*blockSize)
 
 	denominator := 1 + 3 + inodeSize + (3 * blockSize)
 	n := float64(partitionSize-superblockSize) / float64(denominator)

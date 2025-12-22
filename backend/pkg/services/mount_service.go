@@ -14,7 +14,7 @@ var mountedPartitions = make(map[string]*models.MountedPartition)
 // Contador de particiones por disco: Letra -> Contador
 var diskPartitionCounters = make(map[byte]int)
 
-// Carnet del estudiante
+// Carnet
 const CARNET = "202304063"
 
 // MOUNT - Monta una partición en el sistema
@@ -68,7 +68,7 @@ func MOUNT(params map[string]string) (string, error) {
 		return "", fmt.Errorf("Error: No existe una partición con el nombre '%s' en el disco", partName)
 	}
 
-	// Verificar que sea primaria O extendida (según el enunciado original, solo primarias, pero permitiremos extendidas para el test)
+	// Verificar que sea primaria O extendida
 	if mbr.MbrPartitions[partIndex].PartType != 'P' && mbr.MbrPartitions[partIndex].PartType != 'E' {
 		return "", fmt.Errorf("Error: Solo se pueden montar particiones primarias o extendidas")
 	}
@@ -90,7 +90,6 @@ func MOUNT(params map[string]string) (string, error) {
 	partNum := diskPartitionCounters[diskLetter]
 
 	// Generar ID de la partición
-	// Formato: XX + N + L (XX = últimos 2 dígitos del carnet en hex, N = número partición, L = letra disco)
 	id := utils.GeneratePartitionID(CARNET, partNum, diskLetter)
 
 	// Actualizar la partición en el MBR

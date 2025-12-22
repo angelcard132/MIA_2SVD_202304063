@@ -68,7 +68,7 @@ func MKDISK(params map[string]string) (string, error) {
 		return "", fmt.Errorf("Error: El tamaño debe ser un número positivo mayor que 0")
 	}
 
-	// Obtener unit (opcional, default M)
+	// Obtener unit
 	unit := "M"
 	if u, ok := params["unit"]; ok {
 		unit = strings.ToUpper(u)
@@ -127,7 +127,7 @@ func MKDISK(params map[string]string) (string, error) {
 	now := time.Now()
 	mbr := models.MBR{
 		MbrTamano:        sizeBytes,
-		MbrFechaCreacion: now.Unix(), // Guardar como Unix timestamp
+		MbrFechaCreacion: now.Unix(),
 		MbrDskSignature:  utils.GenerateRandomSignature(),
 		DskFit:           utils.GetFitByte(fit),
 	}
