@@ -14,24 +14,24 @@ func FDISK(params map[string]string) (string, error) {
 	// Validar parámetros obligatorios
 	diskName, ok := params["diskname"]
 	if !ok {
-		return "", fmt.Errorf(" Error: El parámetro -diskName es obligatorio")
+		return "", fmt.Errorf("Error: El parámetro -diskName es obligatorio")
 	}
 
 	partName, ok := params["name"]
 	if !ok {
-		return "", fmt.Errorf(" Error: El parámetro -name es obligatorio")
+		return "", fmt.Errorf("Error: El parámetro -name es obligatorio")
 	}
 
 	sizeStr, ok := params["size"]
 	if !ok {
-		return "", fmt.Errorf(" Error: El parámetro -size es obligatorio")
+		return "", fmt.Errorf("Error: El parámetro -size es obligatorio")
 	}
 
 	// Convertir size
 	var size int64
 	_, err := fmt.Sscanf(sizeStr, "%d", &size)
 	if err != nil || size <= 0 {
-		return "", fmt.Errorf(" Error: El tamaño debe ser un número positivo mayor que 0")
+		return "", fmt.Errorf("Error: El tamaño debe ser un número positivo mayor que 0")
 	}
 
 	// Obtener unit (opcional, default K)
@@ -39,7 +39,7 @@ func FDISK(params map[string]string) (string, error) {
 	if u, ok := params["unit"]; ok {
 		unit = strings.ToUpper(u)
 		if unit != "B" && unit != "K" && unit != "M" {
-			return "", fmt.Errorf(" Error: La unidad debe ser B, K o M")
+			return "", fmt.Errorf("Error: La unidad debe ser B, K o M")
 		}
 	}
 
@@ -48,7 +48,7 @@ func FDISK(params map[string]string) (string, error) {
 	if t, ok := params["type"]; ok {
 		partType = strings.ToUpper(t)
 		if partType != "P" && partType != "E" && partType != "L" {
-			return "", fmt.Errorf(" Error: El tipo debe ser P, E o L")
+			return "", fmt.Errorf("Error: El tipo debe ser P, E o L")
 		}
 	}
 
@@ -57,7 +57,7 @@ func FDISK(params map[string]string) (string, error) {
 	if f, ok := params["fit"]; ok {
 		fit = strings.ToUpper(f)
 		if fit != "BF" && fit != "FF" && fit != "WF" {
-			return "", fmt.Errorf(" Error: El ajuste debe ser BF, FF o WF")
+			return "", fmt.Errorf("Error: El ajuste debe ser BF, FF o WF")
 		}
 	}
 
@@ -68,7 +68,7 @@ func FDISK(params map[string]string) (string, error) {
 
 	// Verificar que el disco existe
 	if !utils.FileExists(diskName) {
-		return "", fmt.Errorf(" Error: El disco %s no existe", diskName)
+		return "", fmt.Errorf("Error: El disco %s no existe", diskName)
 	}
 
 	// Calcular tamaño en bytes
@@ -77,7 +77,7 @@ func FDISK(params map[string]string) (string, error) {
 	// Abrir el disco
 	file, err := os.OpenFile(diskName, os.O_RDWR, 0644)
 	if err != nil {
-		return "", fmt.Errorf(" Error al abrir el disco: %v", err)
+		return "", fmt.Errorf("Error al abrir el disco: %v", err)
 	}
 	defer file.Close()
 
@@ -85,14 +85,14 @@ func FDISK(params map[string]string) (string, error) {
 	var mbr models.MBR
 	err = utils.ReadStruct(file, &mbr, 0)
 	if err != nil {
-		return "", fmt.Errorf(" Error al leer el MBR: %v", err)
+		return "", fmt.Errorf("	Error al leer el MBR: %v", err)
 	}
 
 	// Verificar que el nombre de la partición no se repita
 	for i := 0; i < 4; i++ {
 		existingName := utils.ByteToString(mbr.MbrPartitions[i].PartName[:])
 		if existingName == partName && mbr.MbrPartitions[i].PartStart != -1 {
-			return "", fmt.Errorf(" Error: Ya existe una partición con el nombre '%s'", partName)
+			return "", fmt.Errorf("Error: Ya existe una partición con el nombre '%s'", partName)
 		}
 	}
 
@@ -105,7 +105,7 @@ func FDISK(params map[string]string) (string, error) {
 	case "L":
 		return createLogicalPartition(file, &mbr, partName, sizeBytes, fit)
 	default:
-		return "", fmt.Errorf(" Error: Tipo de partición no válido")
+		return "", fmt.Errorf("Error: Tipo de partición no válido")
 	}
 }
 
@@ -280,9 +280,33 @@ func createLogicalPartition(file *os.File, mbr *models.MBR, name string, size in
 	extPartition := mbr.MbrPartitions[extIndex]
 	ebrSize := int64(unsafe.Sizeof(models.EBR{}))
 
+	// Validar que el nombre no se repita en las particiones lógicas
+	currentPos := extPartition.PartStart
+	var currentEBR models.EBR
+	err := utils.ReadStruct(file, &currentEBR, currentPos)
+	if err == nil && currentEBR.PartStart != -1 {
+		// Recorrer todas las particiones lógicas para verificar nombres
+		for {
+			existingName := utils.ByteToString(currentEBR.PartName[:])
+			if existingName == name {
+				return "", fmt.Errorf(" Error: Ya existe una partición lógica con el nombre '%s'", name)
+			}
+
+			if currentEBR.PartNext == -1 {
+				break
+			}
+
+			currentPos = currentEBR.PartNext
+			err = utils.ReadStruct(file, &currentEBR, currentPos)
+			if err != nil {
+				break
+			}
+		}
+	}
+
 	// Leer el primer EBR
 	var ebr models.EBR
-	err := utils.ReadStruct(file, &ebr, extPartition.PartStart)
+	err = utils.ReadStruct(file, &ebr, extPartition.PartStart)
 	if err != nil {
 		return "", fmt.Errorf(" Error al leer el EBR: %v", err)
 	}
@@ -310,21 +334,18 @@ func createLogicalPartition(file *os.File, mbr *models.MBR, name string, size in
 		output += fmt.Sprintf(" Nombre:     %s\n", name)
 		output += fmt.Sprintf(" Tamaño:     %d bytes\n", size)
 		output += fmt.Sprintf(" Ajuste:     %s\n", fit)
-		output += fmt.Sprintf(" Nombre:     %s\n", name)
-		output += fmt.Sprintf(" Tamaño:     %d bytes\n", size)
-		output += fmt.Sprintf(" Ajuste:     %s\n", fit)
 		output += fmt.Sprintf(" Primera partición lógica creada exitosamente\n")
 
 		return output, nil
 	}
 
 	// Recorrer los EBRs hasta encontrar el último
-	currentPos := extPartition.PartStart
+	currentPos = extPartition.PartStart
 	for ebr.PartNext != -1 {
 		currentPos = ebr.PartNext
 		err = utils.ReadStruct(file, &ebr, currentPos)
 		if err != nil {
-			return "", fmt.Errorf(" Error al leer el EBR: %v", err)
+			return "", fmt.Errorf("Error al leer el EBR: %v", err)
 		}
 	}
 
@@ -333,14 +354,14 @@ func createLogicalPartition(file *os.File, mbr *models.MBR, name string, size in
 
 	// Verificar espacio
 	if newEBRPos+ebrSize+size > extPartition.PartStart+extPartition.PartSize {
-		return "", fmt.Errorf(" Error: No hay suficiente espacio en la partición extendida")
+		return "", fmt.Errorf("Error: No hay suficiente espacio en la partición extendida")
 	}
 
 	// Actualizar el EBR actual para apuntar al nuevo
 	ebr.PartNext = newEBRPos
 	err = utils.WriteStruct(file, &ebr, currentPos)
 	if err != nil {
-		return "", fmt.Errorf(" Error al actualizar el EBR anterior: %v", err)
+		return "", fmt.Errorf("Error al actualizar el EBR anterior: %v", err)
 	}
 
 	// Crear el nuevo EBR
@@ -358,14 +379,12 @@ func createLogicalPartition(file *os.File, mbr *models.MBR, name string, size in
 		return "", fmt.Errorf(" Error al escribir el nuevo EBR: %v", err)
 	}
 
-	output := fmt.Sprintf("      PARTICIÓN LÓGICA CREADA           \n")
-	output += fmt.Sprintf(" Nombre:     %s\n", name)
-	output += fmt.Sprintf(" Tamaño:     %d bytes\n", size)
-	output += fmt.Sprintf(" Ajuste:     %s\n", fit)
+	output := fmt.Sprintf("       PARTICIÓN LÓGICA CREADA             \n")
 	output += fmt.Sprintf(" Nombre:     %s\n", name)
 	output += fmt.Sprintf(" Tamaño:     %d bytes\n", size)
 	output += fmt.Sprintf(" Ajuste:     %s\n", fit)
 	output += fmt.Sprintf(" Partición lógica creada exitosamente\n")
+
 	return output, nil
 }
 

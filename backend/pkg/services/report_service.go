@@ -14,20 +14,40 @@ import (
 
 // REP - Genera reportes del sistema de archivos
 func REP(params map[string]string) (string, error) {
-	// Validar parámetros obligatorios
+	// Validar parámetro -id (obligatorio)
+	id, ok := params["id"]
+	if !ok {
+		return "", fmt.Errorf(" Error: El parámetro -id es obligatorio")
+	}
+
+	// Validar parámetro -name (obligatorio)
 	name, ok := params["name"]
 	if !ok {
 		return "", fmt.Errorf(" Error: El parámetro -name es obligatorio")
 	}
 
-	path, ok := params["path"]
-	if !ok {
-		return "", fmt.Errorf(" Error: El parámetro -path es obligatorio")
+	// El path puede venir como -path o -namereport (obligatorio uno de los dos)
+	path, hasPath := params["path"]
+	namereport, hasNamereport := params["namereport"]
+
+	if !hasPath && !hasNamereport {
+		return "", fmt.Errorf(" Error: Debe especificar -path o -namereport")
 	}
 
-	id, ok := params["id"]
-	if !ok {
-		return "", fmt.Errorf(" Error: El parámetro -id es obligatorio")
+	// Usar el que esté disponible
+	finalPath := path
+	if hasNamereport {
+		finalPath = namereport
+	}
+
+	// Si no tiene extensión, agregarle una por defecto según el tipo de reporte
+	if !strings.Contains(finalPath, ".") {
+		switch strings.ToLower(name) {
+		case "bm_inode", "bm_block":
+			finalPath += ".txt"
+		default:
+			finalPath += ".jpg"
+		}
 	}
 
 	// Obtener la partición montada
@@ -37,8 +57,7 @@ func REP(params map[string]string) (string, error) {
 	}
 
 	// Crear directorio si no existe
-	filepath.Dir(path)
-	err = utils.CreateDirectory(path)
+	err = utils.CreateDirectory(finalPath)
 	if err != nil {
 		return "", fmt.Errorf(" Error al crear directorio: %v", err)
 	}
@@ -49,25 +68,25 @@ func REP(params map[string]string) (string, error) {
 
 	switch name {
 	case "mbr":
-		reportOutput, err = generateMBRReport(mp, path)
+		reportOutput, err = generateMBRReport(mp, finalPath)
 	case "disk":
-		reportOutput, err = generateDiskReport(mp, path)
+		reportOutput, err = generateDiskReport(mp, finalPath)
 	case "inode":
-		reportOutput, err = generateInodeReport(mp, path)
+		reportOutput, err = generateInodeReport(mp, finalPath)
 	case "block":
-		reportOutput, err = generateBlockReport(mp, path)
+		reportOutput, err = generateBlockReport(mp, finalPath)
 	case "bm_inode":
-		reportOutput, err = generateBitmapInodeReport(mp, path)
+		reportOutput, err = generateBitmapInodeReport(mp, finalPath)
 	case "bm_block":
-		reportOutput, err = generateBitmapBlockReport(mp, path)
+		reportOutput, err = generateBitmapBlockReport(mp, finalPath)
 	case "tree":
-		reportOutput, err = generateTreeReport(mp, path)
+		reportOutput, err = generateTreeReport(mp, finalPath)
 	case "sb":
-		reportOutput, err = generateSuperblockReport(mp, path)
+		reportOutput, err = generateSuperblockReport(mp, finalPath)
 	case "file":
-		reportOutput, err = generateFileReport(mp, path)
+		reportOutput, err = generateFileReport(mp, finalPath)
 	case "ls":
-		reportOutput, err = generateLsReport(mp, path)
+		reportOutput, err = generateLsReport(mp, finalPath)
 	default:
 		return "", fmt.Errorf(" Error: Tipo de reporte '%s' no válido", name)
 	}
@@ -78,7 +97,7 @@ func REP(params map[string]string) (string, error) {
 
 	output := fmt.Sprintf("         REPORTE GENERADO EXITOSAMENTE     \n")
 	output += fmt.Sprintf(" Tipo:           %s\n", strings.ToUpper(name))
-	output += fmt.Sprintf(" Ubicación:      %s\n", path)
+	output += fmt.Sprintf(" Ubicación:      %s\n", finalPath)
 	output += fmt.Sprintf(" Partición:      %s\n", id)
 	output += fmt.Sprintf("\n%s\n", reportOutput)
 	output += fmt.Sprintf("\n Reporte generado correctamente\n")
@@ -364,8 +383,6 @@ func generateBitmapBlockReport(mp *models.MountedPartition, path string) (string
 
 	return writeTextReport(content.String(), path)
 }
-
-// Funciones auxiliares continúan en el siguiente mensaje...
 
 // generateInodeReport - Genera el reporte de inodos
 func generateInodeReport(mp *models.MountedPartition, path string) (string, error) {

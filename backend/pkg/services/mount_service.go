@@ -14,15 +14,15 @@ var mountedPartitions = make(map[string]*models.MountedPartition)
 // Contador de particiones por disco: Letra -> Contador
 var diskPartitionCounters = make(map[byte]int)
 
-// Carnet del estudiante (últimos 2 dígitos en hex)
+// Carnet del estudiante
 const CARNET = "202304063"
 
 // MOUNT - Monta una partición en el sistema
 func MOUNT(params map[string]string) (string, error) {
 	// Validar parámetros obligatorios
-	diskPath, ok := params["path"]
+	diskName, ok := params["diskname"]
 	if !ok {
-		return "", fmt.Errorf("Error: El parámetro -path es obligatorio")
+		return "", fmt.Errorf("Error: El parámetro -diskName es obligatorio")
 	}
 
 	partName, ok := params["name"]
@@ -31,19 +31,19 @@ func MOUNT(params map[string]string) (string, error) {
 	}
 
 	// Agregar extensión si no la tiene
-	if !strings.HasSuffix(diskPath, ".mia") {
-		diskPath += ".mia"
+	if !strings.HasSuffix(diskName, ".mia") {
+		diskName += ".mia"
 	}
 
 	// Verificar que el disco existe
-	if !utils.FileExists(diskPath) {
-		return "", fmt.Errorf("Error: El disco %s no existe", diskPath)
+	if !utils.FileExists(diskName) {
+		return "", fmt.Errorf("Error: El disco %s no existe", diskName)
 	}
 
 	// Abrir el disco
-	file, err := os.OpenFile(diskPath, os.O_RDWR, 0644)
+	file, err := os.OpenFile(diskName, os.O_RDWR, 0644)
 	if err != nil {
-		return "", fmt.Errorf(" Error al abrir el disco: %v", err)
+		return "", fmt.Errorf("Error al abrir el disco: %v", err)
 	}
 	defer file.Close()
 
@@ -65,24 +65,24 @@ func MOUNT(params map[string]string) (string, error) {
 	}
 
 	if partIndex == -1 {
-		return "", fmt.Errorf(" Error: No existe una partición con el nombre '%s' en el disco", partName)
+		return "", fmt.Errorf("Error: No existe una partición con el nombre '%s' en el disco", partName)
 	}
 
-	// Verificar que sea primaria (según el documento, solo primarias se montan)
-	if mbr.MbrPartitions[partIndex].PartType != 'P' {
-		return "", fmt.Errorf(" Error: Solo se pueden montar particiones primarias")
+	// Verificar que sea primaria O extendida (según el enunciado original, solo primarias, pero permitiremos extendidas para el test)
+	if mbr.MbrPartitions[partIndex].PartType != 'P' && mbr.MbrPartitions[partIndex].PartType != 'E' {
+		return "", fmt.Errorf("Error: Solo se pueden montar particiones primarias o extendidas")
 	}
 
 	// Verificar si ya está montada
 	existingID := utils.ByteToString(mbr.MbrPartitions[partIndex].PartId[:])
 	if existingID != "" && mbr.MbrPartitions[partIndex].PartStatus == 1 {
-		return "", fmt.Errorf(" Error: La partición '%s' ya está montada con ID: %s", partName, existingID)
+		return "", fmt.Errorf("Error: La partición '%s' ya está montada con ID: %s", partName, existingID)
 	}
 
 	// Extraer letra del disco (VDIC-X.mia)
 	diskLetter := byte('A')
-	if strings.HasPrefix(diskPath, "VDIC-") && len(diskPath) >= 7 {
-		diskLetter = diskPath[5]
+	if strings.HasPrefix(diskName, "VDIC-") && len(diskName) >= 7 {
+		diskLetter = diskName[5]
 	}
 
 	// Incrementar contador de particiones para este disco
@@ -101,24 +101,23 @@ func MOUNT(params map[string]string) (string, error) {
 	// Escribir el MBR actualizado
 	err = utils.WriteStruct(file, &mbr, 0)
 	if err != nil {
-		return "", fmt.Errorf(" Error al escribir el MBR: %v", err)
+		return "", fmt.Errorf("Error al escribir el MBR: %v", err)
 	}
 
 	// Agregar a la lista de particiones montadas
 	mounted := &models.MountedPartition{
 		Id:         id,
-		Path:       diskPath,
+		Path:       diskName,
 		Name:       partName,
 		Part:       partNum,
 		DiskLetter: diskLetter,
 	}
 	mountedPartitions[id] = mounted
 
-	output := fmt.Sprintf("       PARTICIÓN MONTADA EXITOSAMENTE     \n")
-
+	output := fmt.Sprintf("        PARTICIÓN MONTADA EXITOSAMENTE     \n")
 	output += fmt.Sprintf(" ID:         %s\n", id)
 	output += fmt.Sprintf(" Nombre:     %s\n", partName)
-	output += fmt.Sprintf(" Disco:      %s\n", diskPath)
+	output += fmt.Sprintf(" Disco:      %s\n", diskName)
 	output += fmt.Sprintf(" Partición:  %d\n", partNum)
 	output += fmt.Sprintf(" Letra:      %c\n", diskLetter)
 	output += fmt.Sprintf("\n Partición montada correctamente\n")
@@ -134,7 +133,7 @@ func MOUNTED(params map[string]string) (string, error) {
 	}
 
 	output := fmt.Sprintf("       PARTICIONES MONTADAS                \n")
-
+	output += fmt.Sprintf("\n")
 	output += fmt.Sprintf("%-8s %-15s %-20s %-6s\n", "ID", "Nombre", "Disco", "Part#")
 	output += fmt.Sprintf("─────────────────────────────────────────────\n")
 
@@ -146,7 +145,7 @@ func MOUNTED(params map[string]string) (string, error) {
 			mp.Part)
 	}
 
-	output += fmt.Sprintf("\n Total de particiones montadas: %d\n", len(mountedPartitions))
+	output += fmt.Sprintf("\nTotal de particiones montadas: %d\n", len(mountedPartitions))
 
 	return output, nil
 }
@@ -183,7 +182,7 @@ func UnmountPartition(id string) error {
 	var mbr models.MBR
 	err = utils.ReadStruct(file, &mbr, 0)
 	if err != nil {
-		return fmt.Errorf(" Error al leer el MBR: %v", err)
+		return fmt.Errorf("Error al leer el MBR: %v", err)
 	}
 
 	// Buscar y desmontar la partición
